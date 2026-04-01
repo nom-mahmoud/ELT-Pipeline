@@ -1,0 +1,14 @@
+dagster
+dagster-webserver
+dagster-dbt
+dbt-core
+dbt-postgres
+psycopg2-binary
+sqlalchemy
+pandas
+requests
+pytest
+streamlit
+plotly
+matplotlib
+scikit-learn

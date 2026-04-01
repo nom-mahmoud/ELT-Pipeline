@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: weather_postgres
+    environment:
+      POSTGRES_USER: weather_user
+      POSTGRES_PASSWORD: weather_pass
+      POSTGRES_DB: weather_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  dagster:
+    build: .
+    container_name: dagster_pipeline
+    ports:
+      - "3000:3000"
+    command: ["dagster", "dev", "-w", "workspace.yaml", "-h", "0.0.0.0", "-p", "3000"]
+    volumes:
+      - .:/app
+    environment:
+      DAGSTER_HOME: /app/dagster_home
+      POSTGRES_HOST: db
+      POSTGRES_USER: weather_user
+      POSTGRES_PASSWORD: weather_pass
+      POSTGRES_DB: weather_db
+    depends_on:
+      - db
+
+  streamlit:
+    build: .
+    container_name: weather_dashboard
+    ports:
+      - "8501:8501"
+    command: ["streamlit", "run", "dashboard/app.py"]
+    volumes:
+      - .:/app
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_USER: weather_user
+      POSTGRES_PASSWORD: weather_pass
+      POSTGRES_DB: weather_db
+    depends_on:
+      - dagster
+      - db
+
+volumes:
+  postgres_data:
