@@ -1,0 +1,12 @@
+weather_dbt:
+  outputs:
+    dev:
+      type: postgres
+      host: "{{ env_var('POSTGRES_HOST', 'localhost') }}"
+      user: "{{ env_var('POSTGRES_USER', 'weather_user') }}"
+      password: "{{ env_var('POSTGRES_PASSWORD', 'weather_pass') }}"
+      port: 5432
+      dbname: "{{ env_var('POSTGRES_DB', 'weather_db') }}"
+      schema: public
+      threads: 4
+  target: dev

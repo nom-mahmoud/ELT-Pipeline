@@ -1,0 +1,8 @@
+version: 2
+
+sources:
+  - name: main
+    schema: public
+    tables:
+      - name: raw_weather
+        description: "Raw weather data loaded directly from Open-Meteo API"
