@@ -1,56 +1,100 @@
-# Projet de Pipeline de Données : Météo avec Dagster, dbt et PostgreSQL
+# Weather ELT Pipeline — Dagster, dbt & PostgreSQL
 
-## 🎯 Objectif du projet
-Ce projet implémente une pipeline de données de bout en bout (ELT) pour récupérer, transformer et visualiser des données météorologiques issues de l'API publique Open-Meteo.
+A production-ready ELT pipeline that ingests historical weather data from the Open-Meteo API, loads it into PostgreSQL, transforms it with dbt, and serves it through an interactive Streamlit dashboard.
 
-## 🛠️ Stack Technologique
-- **Orchestration** : Dagster
-- **Base de données** : PostgreSQL (Serveur robuste de base de données relationnelle)
-- **Transformations (T)** : dbt (Data Build Tool) couplé à PostgreSQL
-- **Visualisation** : Streamlit avec des graphiques Plotly (Design Premium Dark Mode)
-- **Tests** : pytest
-- **Conteneurisation** : Docker & Docker Compose
+## Stack
 
-## 🏗️ Architecture
-1. **Extraction** : Un asset Dagster récupère l'historique des températures horaires depuis l'API Open-Meteo.
-2. **Chargement (Load)** : Ces données brutes sont insérées dans une table `raw_weather` dans PostgreSQL.
-3. **Transformation** : Des modèles dbt (`stg_weather`, `mart_daily_weather_stats`) prennent en charge le nettoyage et l'agrégation des données. L'exécution de dbt est orchestrée de manière unifiée au sein du job Dagster grâce à `dagster-dbt`.
-4. **Visualisation** : L'application Streamlit lit le data mart final pour proposer un Dashboard dynamique d'analyse des tendances.
+| Layer | Technology |
+|---|---|
+| Orchestration | Dagster + dagster-dbt |
+| Storage | PostgreSQL |
+| Transformation | dbt (data build tool) |
+| Visualization | Streamlit + Plotly |
+| Testing | pytest |
+| Containerization | Docker & Docker Compose |
 
-## 🚀 Lancement Rapide (Local)
+## Architecture
 
-*Prérequis: Un serveur PostgreSQL doit être accessible (en local ou via docker).*
+```
+Open-Meteo API
+      │
+      ▼
+Dagster Asset (raw_weather)
+      │  Extract & Load
+      ▼
+PostgreSQL — raw_weather table
+      │
+      ▼
+dbt (dagster-dbt)
+  ├── stg_weather         (staging: type casting, renaming)
+  └── mart_daily_weather_stats  (daily min/max/avg aggregations)
+      │
+      ▼
+Streamlit Dashboard
+```
 
-1. **Installer les dépendances** :
+## Getting Started
+
+### Prerequisites
+
+- Python 3.10+
+- PostgreSQL running locally or via Docker
+
+### Run locally
+
 ```bash
 pip install -r requirements.txt
 ```
 
-2. **Démarrer Dagster (Orchestrateur UI)** :
+Start the orchestrator:
 ```bash
 dagster dev
 ```
-Rendez-vous sur http://localhost:3000, allez dans l'onglet "Assets" et cliquez sur **Materialize All** pour lancer la pipeline complète.
 
-3. **Démarrer Streamlit (Dashboard UI)** :
-Ouvrez un autre terminal :
+Open the Dagster UI at http://localhost:3000, navigate to **Assets** and click **Materialize All** to trigger the full pipeline.
+
+Start the dashboard in a second terminal:
 ```bash
 streamlit run dashboard/app.py
 ```
-Accédez au tableau de bord sur http://localhost:8501.
 
-## 🐳 Lancement via Docker (Bonus)
-Pour déployer le projet entièrement avec Docker :
+Dashboard available at http://localhost:8501.
+
+### Run with Docker
+
 ```bash
 docker-compose up --build
 ```
-- Dagster UI : http://localhost:3000
-- Dashboard Streamlit : http://localhost:8501
 
-*(Note: via l'UI Dagster Dockerisée, matérialisez les assets pour voir les données apparaitre dans le dashboard streamllit)*
+- Dagster UI: http://localhost:3000
+- Dashboard: http://localhost:8501
 
-## ✅ Tests
-Pour lancer la suite de tests (vérification de l'extraction API et intégration des assets) :
+Once the containers are up, open the Dagster UI and materialize all assets to populate the database and dashboard.
+
+## Testing
+
 ```bash
 pytest tests/
+```
+
+## Project Structure
+
+```
+.
+├── weather_pipeline/
+│   ├── definitions.py          # Dagster repository definition
+│   └── assets/
+│       ├── raw_data.py         # Extraction from Open-Meteo API
+│       └── dbt_assets.py       # dbt models exposed as Dagster assets
+├── weather_dbt/
+│   ├── dbt_project.yml
+│   └── models/
+│       ├── staging/stg_weather.sql
+│       └── marts/mart_daily_weather_stats.sql
+├── dashboard/
+│   └── app.py
+├── tests/
+│   └── test_assets.py
+├── docker-compose.yml
+└── requirements.txt
 ```
